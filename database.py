@@ -12,12 +12,7 @@ cur.execute('''CREATE TABLE IF NOT EXISTS user
                contact TEXT, 
                created_at TEXT)''')
 
-# Insert a row of data
-# cur.execute("INSERT INTO stocks VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
-
-# Save (commit) the changes
+cur.execute("INSERT INTO users (name, email, password, contact) VALUES (?,?,?,?)",('Ivan',"test@test.com",'123456','00011122233'))
 con.commit()
 
-# We can also close the connection if we are done with it.
-# Just be sure any changes have been committed or they will be lost.
 con.close()

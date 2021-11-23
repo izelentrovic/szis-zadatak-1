@@ -1,5 +1,42 @@
+import hashlib
 import sqlite3
-import time
+from datetime import date
+con = sqlite3.connect('baza.db')
+
+
+def login():
+        ime = input("Unesi ime: ")
+        lozinka = input("Unesi lozinku: ")
+        
+        cur = con.cursor()
+        password=cur.execute("SELECT password FROM users WHERE name = ?", (ime,))
+        password=cur.fetchone()
+        print(password)
+        if(cur.rowcount>0):
+                print("Korisnik postoji \n")
+
+        
+def registracija():
+        ime = input("Unesi ime: ")
+        email = input("Unesi email: ")
+        lozinka = input("Unesi lozinku: ")
+        kontakt = input("Unesi kontakt broj: ")
+        today = date.today() #danasnji datum
+
+        hash_object = hashlib.md5(lozinka.encode())
+        safelozinka = hash_object.hexdigest()
+
+        cur = con.cursor()
+        
+        cur.execute("INSERT INTO users (name, email, password, kontakt, created_at) VALUES (?,?,?,?,?)",(ime, email, safelozinka, kontakt, today))
+        con.commit()
+
+
+        if(cur.rowcount>0):
+                print("Podatak je zapisan")
+                
+        con.close()
+        
 
 def main():
     print("Dobrodošli u Unidu sustav!")
@@ -10,25 +47,13 @@ def main():
     while(unos!=1 and unos!=2):
         unos = int(input("Unesite broj: "))
 
-    email = input("Unesi email: ")
-    password = hash_pass(input("Unesi lozinku: "))
-    
-    if unos == 2:
-        name = input("Unesi ime: ")
-        contact = input("Unesi kontakt broj: ")
-    
-        register_user(name, email, password, contact)
 
-def register_user(name, email, password, contact):
-    created_at = int(time.time())
-    cur.execute("""INSERT INTO user (name, email, password, contact, created_at)
-                    VALUES (?, ?, ?, ?, ?)""", (name, email, password, contact, created_at))
-    con.commit()
+    if(unos==2):
+        registracija()
+        
+    if(unos==1):
+        login()
 
-def hash_pass(password):    # implement this
-    return password
 
 if __name__=="__main__":
-    con = sqlite3.connect('baza.db')
-    cur = con.cursor()
     main()
