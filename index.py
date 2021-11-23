@@ -9,11 +9,42 @@ def login():
         lozinka = input("Unesi lozinku: ")
         
         cur = con.cursor()
-        password=cur.execute("SELECT password FROM users WHERE name = ?", (ime,))
-        password=cur.fetchone()
-        print(password)
-        if(cur.rowcount>0):
-                print("Korisnik postoji \n")
+        row=cur.execute("SELECT id, password FROM users WHERE name = ?", (ime,))
+        row=cur.fetchone()
+        uid = row[0]
+        password = row[1]
+
+        if(cur.rowcount<=0):
+            print(uid, password)
+            return
+        
+        print("Korisnik postoji i prijavljen \n")
+        now = date.today()
+
+        logins = 0
+
+        cur.execute('''UPDATE logins 
+                    SET logins = ?,
+                    last_login = ?
+                    WHERE uid = ?
+                    ''', (logins+1, now, uid))
+
+        cur.execute('''INSERT INTO logins
+                    (logins, last_login, uid)
+                    VALUES (?, ?, ?)
+                    ''', (logins+1, now, uid))
+
+        cur.execute(f'''INSERT OR REPLACE INTO logins 
+                    (logins, last_login, uid) 
+                    VALUES (
+                        (SELECT logins FROM logins WHERE Name = "SearchName"),
+                        {now},
+                        IFNULL(
+                            (SELECT COUNT FROM logins WHERE Name = "SearchName")
+                            , 0) 
+                        + 1)
+        ''')
+        cur.commit()
 
         
 def registracija():
