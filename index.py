@@ -1,6 +1,8 @@
 import hashlib
 import sqlite3
-from datetime import date
+from datetime import date, datetime, timedelta
+import time
+
 con = sqlite3.connect('baza.db')
 
 
@@ -68,16 +70,46 @@ def registracija():
                 
         con.close()
         
+def forgot_password():
+    cur = con.cursor()
+    
+    email = input("Unesi email: ")
+    
+    cur.execute("SELECT id FROM users WHERE email=?", (email,))
+    
+    row = cur.fetchone()
+    
+    if(row == None):
+        print("Korisnik nije pronađen!")
+        return
+
+    uid = row[0]
+    
+    curr_time = int(time.time())
+    plus_30_time = datetime.now() + timedelta(minutes=30)
+
+    hash_object = hashlib.md5(str(curr_time).encode())
+    hashed_time = hash_object.hexdigest()
+    
+    cur.execute("INSERT INTO forgot_password (hash, valid_until, uid) VALUES (?,?,?)", (hashed_time, plus_30_time, uid))
+    con.commit()
+
+    if(cur.rowcount>0):
+        print("Hash:", hashed_time)
+    
+    con.close()
 
 def main():
     print("Dobrodošli u Unidu sustav!")
-    print("Za prijavu upišite broj 1, za registraciju broj 2:")
+    print("Za prijavu upišite broj 1, za registraciju broj 2, za zaboravljenu lozinku broj 3:")
 
     unos = 0
 
-    while(unos!=1 and unos!=2):
+    while(unos!=1 and unos!=2 and unos!=3):
         unos = int(input("Unesite broj: "))
 
+    if(unos==3):
+        forgot_password()
 
     if(unos==2):
         registracija()
